@@ -1,4 +1,22 @@
 import torch
+import os
+import numpy as np
+
+def checkdir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def print_nonzeros(model):
+    nonzero = total = 0
+    for name, p in model.named_parameters():
+        tensor = p.data.cpu().numpy()
+        nz_count = np.count_nonzero(tensor)
+        total_params = np.prod(tensor.shape)
+        nonzero += nz_count
+        total += total_params
+        print(f'{name:20} | nonzeros = {nz_count:7} / {total_params:7} ({100 * nz_count / total_params:6.2f}%) | total_pruned = {total_params - nz_count :7} | shape = {tensor.shape}')
+    print(f'alive: {nonzero}, pruned : {total - nonzero}, total: {total}, Compression rate : {total/nonzero:10.2f}x  ({100 * (total-nonzero) / total:6.2f}% pruned)')
+    return (round((nonzero/total)*100,1))
 
 
 def calc_mean_std(feat, eps=1e-5):
